@@ -1,0 +1,513 @@
+
+-------------------------------------------
+1.	Perform Summary Analysis describing the number of 
+    a.	Columns
+    b.	rows 
+    c.	names of different columns
+    d.	The class types of the columns
+    
+```{r}
+
+#Super_Store <- read.csv("EDA/Hackathon/Data 2.csv",header = TRUE)
+Super_Store <- read.csv(file.choose(),header = TRUE)
+Store_Data <- Super_Store
+
+dim(Store_Data)
+names(Store_Data)
+str(Store_Data)
+
+head(Store_Data,3)
+summary(Store_Data)
+class(Store_Data)
+
+```
+
+2.	Check the Data Quality of the data. If you realize there are null values in it, use Data Imputation for filling the data. Justify the methodology you follow for Data Imputaion. 
+
+```{r}
+
+Store_Data <- subset(Store_Data,Store_Data$Sales != "")
+dim(Store_Data)
+
+sum(is.na(Store_Data))
+colSums(is.na(Store_Data))
+
+```
+
+3.	Do Univariate Analysis of all the variables present.
+
+```{r}
+
+library(ggplot2)
+library(reshape2)
+
+#=============================================================
+# Ship Mode Column Univariate Analysis
+
+tab = table(Store_Data$Ship.Mode)
+vec1 <- tab[names(tab)]
+vec1 <- as.vector(vec1)
+
+bar = barplot(tab,col=rainbow(length(vec1)),ylim = c(0,max(vec1)+5000),main = "Shipping Mode Distribution",xlab = "Shipping Mode",ylab = "Order Frequency")
+text(x = bar, y = vec1, label = vec1, pos = 3, cex = 1, col = rainbow(length(vec1)))
+
+x <- vec1
+labels <-  names(tab)
+piepercent<- round(100*x/sum(x), 1)
+
+pie(x, labels = piepercent, main = "Shipping Mode Distribution",col = rainbow(length(x)))
+legend("topleft", labels, cex = 0.8,fill = rainbow(length(x)))
+
+#=============================================================
+# Segment Column Univariate Analysis
+
+tab = table(Store_Data$Segment)
+vec1 <- tab[names(tab)]
+vec1 <- as.vector(vec1)
+
+bar = barplot(tab,col=rainbow(length(vec1)),ylim = c(0,max(vec1)+5000),main = "Segment Distribution",xlab = "Segment",ylab = "Order Frequency")
+text(x = bar, y = vec1, label = vec1, pos = 3, cex = 1, col = rainbow(length(vec1)))
+
+x <- vec1
+labels <-  names(tab)
+
+piepercent<- round(100*x/sum(x), 1)
+pie1 <- pie(x, labels = piepercent, main = "Segment Distribution",col = rainbow(length(x)))
+legend("topleft", labels, cex = 0.8,fill = rainbow(length(x)))
+
+#=============================================================
+#Univariate Analysis for Order Date
+
+data_Date <- Store_Data[,c('Order.ID','Order.Date')]
+
+data_Date = data_Date[!duplicated(data_Date$Order.ID),]
+dt <- as.Date(data_Date$Order.Date, format = "%d-%m-%y")
+
+FuncQuarter <- function(a) ceiling(as.integer(format(as.Date(a), "%m"))/3)
+quar <- lapply(dt, function(y) FuncQuarter(y) )
+quar <- as.vector(unlist(quar))
+data_Date$Quarter <- quar
+
+FuncYear <- function(a) as.integer(format(as.Date(a), "%Y"))
+Y1 <- lapply(dt, function(y) FuncYear(y) )
+Y1 <- as.vector(unlist(Y1))
+data_Date$Year <- Y1
+
+tab = table(data_Date$Quarter)
+vec1 <- tab[names(tab)]
+vec1 <- as.vector(vec1)
+
+bar = barplot(tab,col=rainbow(length(vec1)),ylim = c(0,max(vec1)+2000),main = "Quarter wise Order", xlab = "Quarter",ylab = "Order Frequency")
+text(x = bar, y = vec1, label = vec1, pos = 3, cex = 1, col = rainbow(length(vec1)))
+
+x <- vec1
+labels <-names(tab)
+
+piepercent<- round(100*x/sum(x), 1)
+pie(x, labels = piepercent, main = "Quarter wise Order",col = rainbow(length(x)))
+legend("topleft", labels, cex = 0.6,fill = rainbow(length(x)))
+
+tab = table(data_Date$Year)
+vec1 <- tab[names(tab)]
+vec1 <- as.vector(vec1)
+
+bar = barplot(tab,col=rainbow(length(vec1)),ylim = c(0,max(vec1)+2000),main = "Year wise Order", xlab = "Year",ylab = "Order Frequency")
+text(x = bar, y = vec1, label = vec1, pos = 3, cex = 1, col = rainbow(length(vec1)))
+
+x <- vec1
+labels <-names(tab)
+
+piepercent<- round(100*x/sum(x), 1)
+pie(x, labels = piepercent, main = "Year wise Order",col = rainbow(length(x)))
+legend("topleft", labels, cex = 0.6,fill = rainbow(length(x)))
+
+#=============================================================
+#Univariant Analysis Category
+
+Category <- table(Store_Data$Category)
+a <-prop.table(Category)
+b <-levels(Store_Data$Category)
+lable_cat <- round(c(a*100),2)
+
+pie(a,labels = lable_cat, col = rainbow(length(a)),radius = 1)
+legend("topleft",b,cex = 0.8,fill = rainbow(length(a)))
+
+#=============================================================
+#Univariant Analysis Sub-Category
+
+Sub.Category <- table(Store_Data$Sub.Category)
+c <- prop.table(Sub.Category)
+d <- levels(Store_Data$Sub.Category)
+lable_sub.cat <- round(c(c*100),2)
+
+pie(c, labels = lable_sub.cat,col = c(5:30,2),radius = 1)
+legend("topleft",d,cex = 0.7,fill = c(5:30,2))
+ 
+#=============================================================
+#Univatiant Analysis Order Priority
+
+order_priority <- table(Store_Data$Order.Priority)
+e <- prop.table(order_priority)
+f <- levels(Store_Data$Order.Priority)
+lable_order <- round(c(e*100),2)
+
+pie(e,labels = lable_order, col = rainbow(length(e)),radius = 1)
+legend("topleft",f,cex = 0.8,fill = rainbow(length(e)))
+
+#=============================================================
+# Univatiant Analysis Market
+
+market <- table(Store_Data$Market)
+g <- prop.table(market)
+h <- levels(Store_Data$Market)
+lable_market <- round(c(g*100),2)
+
+pie(g,labels = lable_market, col = rainbow(length(g)),radius = 1)
+legend("topleft",h,cex = 0.8,fill = rainbow(length(g)))
+
+#=============================================================
+# Pie chart for region
+
+#regionTab<-table(Store_Data$Region)
+#a <-prop.table(x)
+#b<-levels(Store_Data$Region)
+#label_region <- round(c(a*100),2)
+
+#pie(a, labels = label_region, col= rainbow(length(a)),radius=1)
+#legend("topleft", b, cex=0.7, fill = rainbow(length(a)))
+
+#=============================================================
+# Pie chart for country
+
+#CountryTab<-table(Store_Data$Country)
+#c <-prop.table(x)
+#d<-levels(Store_Data$Country)
+#label_country <- round(c(a*100),2)
+
+#pie(c, labels = label_country, col= rainbow(length(c)),radius=1)
+#legend("topleft", d, cex=0.7, fill = rainbow(length(c)))
+
+```
+
+4.	The target variables in this dataset is the attribute "Sales" Do a bivariate analysis of this variable with all the other attributes. Also give your inferences from the graph generated.
+
+```{r}
+
+#=============================================================
+# Bivarite analysis for Categoty and Sale
+
+cat_sal <- Store_Data[,c('Category','Sales')]
+
+sale <- as.character(cat_sal$Sales)
+#sale <- substr(sale, 2, nchar(sale))
+sale <- gsub("\\$", "", sale)
+sale <- gsub(",","",sale)
+sale <- as.numeric(sale)
+
+cat_sal$NewSale <- sale
+cat_sal$Sales <- NULL
+
+d1 <- aggregate(NewSale~Category, data=cat_sal, FUN=sum) 
+
+tab = table(data_Date$Year)
+vec1 <- d1$NewSale
+vec1 <- as.vector(vec1)
+
+x <- vec1
+labels <- as.vector(d1$Category)
+
+piepercent<- round(100*x/sum(x), 1)
+pie(x, labels = piepercent, main = "Sales by Category",col = rainbow(length(x)))
+legend("topleft", labels, cex = 0.8,fill = rainbow(length(x)))
+
+#=============================================================
+#Bivariate analysis for Order date and Sale
+
+date_sale <- Store_Data[,c('Order.Date','Sales')]
+date_sale$NewSale <- sale
+date_sale$Sales <- NULL
+
+dt <- as.Date(date_sale$Order.Date, format = "%d-%m-%y")
+
+FuncQuarter <- function(a) ceiling(as.integer(format(as.Date(a), "%m"))/3)
+quar <- lapply(dt, function(y) FuncQuarter(y) )
+quar <- as.vector(unlist(quar))
+date_sale$Quarter <- quar
+
+FuncYear <- function(a) as.integer(format(as.Date(a), "%Y"))
+Y1 <- lapply(dt, function(y) FuncYear(y) )
+Y1 <- as.vector(unlist(Y1))
+date_sale$Year <- Y1
+
+d1 <- aggregate(NewSale~Year+Quarter, data=date_sale, FUN=sum) 
+QT <- paste0("Q",d1$Quarter)
+d1$NewQu <- QT
+
+names(d1)[names(d1) == 'NewSale'] <- 'Sale'
+names(d1)[names(d1) == 'NewQu'] <- 'Quarters'
+
+ggplot(data = d1, aes(x=Year, y=Sale)) + geom_line(aes(colour=Quarters)) + geom_point(aes(colour=Quarters))
+
+#ggplot(data = d1, aes(x=Year, y=NewSale)) + geom_line(aes(colour=NewQu)) + geom_point(aes(colour=NewQu))
+
+#=============================================================
+# Bivariate analysis for Product and Sale
+
+sale_pro <- Store_Data[,c('Product.ID','Sales')]
+sale_pro$NewSale <- sale
+sale_pro$Sales <- NULL
+
+d1 <- aggregate(NewSale~Product.ID, data=sale_pro, FUN=sum) 
+
+d2 <- d1[with(d1, order(-NewSale)), ]
+Top10Product <- head(d2,10)
+Bottom10Product <- tail(d2,10)
+
+Top10Product
+Bottom10Product
+
+#=============================================================
+# BiVariant Analysis Sales Vs Sub_Categories
+
+sales <- gsub(",", "", Store_Data$Sales)
+sales <- as.numeric(gsub("\\$", "", sales)) 
+Store_Data$new_sales <- sales
+
+ggplot(Store_Data, aes(Sub.Category , new_sales))+
+  ylab("Sales in Dollars($)")+
+  xlab("Product Sub_Categories")+
+  ggtitle("Sales from different Sub_Categories")+
+  theme(plot.title = element_text(hjust = 0.5,size = 18,face = "bold"))+
+  geom_bar(stat = "identity",fill = "#6666FF")+ 
+  coord_flip()
+
+#=============================================================
+# BiVariant Analysis Sales Vs Region
+
+ggplot(Store_Data, aes(Region, new_sales))+
+  ylab("Sales in Dollars($)")+
+  xlab("Business Regions")+
+  ggtitle("Sales from different Business Regions")+
+  theme(plot.title = element_text(hjust = 0.5,size = 18,face = "bold"))+
+  geom_bar(stat = "identity",fill = "#6666FF")+ 
+  coord_flip()
+
+#=============================================================
+# BiVariant Analysis Sales Vs Countries
+
+#ggplot(Store_Data, aes(Country, new_sales))+
+#  ylab("Sales in Dollars($)")+
+#  xlab("Business Countries")+
+#  ggtitle("Sales from different Business Countries")+
+#  theme(plot.title = element_text(hjust = 0.5,size = 18,face = "bold"))+
+#  geom_bar(stat = "identity",fill = "#6666FF")+ 
+#  coord_flip() #Output not clear
+
+#Going for top 10 countries
+
+aggr_country <-aggregate(Store_Data$new_sales, by=list(Category=Store_Data$Country), FUN=sum)
+sorted_aggr <-aggr_country[order(-aggr_country$x),c(1,2)]
+
+top <- head(sorted_aggr,10)
+ggplot(data = top, aes(x = Category, x))+
+  geom_bar(stat = "identity",fill = "#6666FF")+
+  coord_flip()+
+  ylab("Sales in Dollars($)")+
+  xlab("Business Countries")+
+  ggtitle("Top 10 Countries(Sales)")+
+  theme(plot.title = element_text(hjust = 0.5,size = 18,face = "bold"))
+
+# Going for bottom 10 countries
+
+bottom <- tail(sorted_aggr,10)
+ggplot(data = bottom, aes(x = Category, x))+
+  geom_bar(stat = "identity",fill = "#6666FF")+
+  coord_flip()+
+  ylab("Sales in Dollars($)")+
+  xlab("Business Countries")+
+  ggtitle("Bottom 10 Countries(Sales)")+
+  theme(plot.title = element_text(hjust = 0.5,size = 18,face = "bold"))
+
+#=============================================================
+# Bar plot for region vs Count of purchased products
+
+Store_Data$Region = as.factor(Store_Data$Region)
+Store_Data$Country = as.factor(Store_Data$Country)
+Store_Data$Ship.Mode = as.factor(Store_Data$Ship.Mode)
+
+p <- ggplot(Store_Data, aes(x=Region))+geom_bar(fill= "red")+ theme_bw() +labs(y="no. of products", title = "Region most products purchased")
+p+theme(axis.text.x =element_text(angle=90, hjust=1) )
+
+#=============================================================
+# Plot for Ship Mode vs Sales
+
+sales <- gsub(",", "", Store_Data$Sales)
+sales <- as.numeric(gsub("\\$", "", sales)) 
+Store_Data$new_sales <- sales
+
+ggplot(Store_Data, aes(Ship.Mode , new_sales))+
+  ylab("Sales in Dollars($)")+
+  xlab("Ship Mode")+
+  ggtitle("Sales vs Ship Mode")+
+  theme(plot.title = element_text(hjust = 0.5,size = 18,face = "bold"))+
+  geom_bar(stat = "identity",fill = "#6666FF")+ 
+  coord_flip()
+
+#=============================================================
+# Plot for Segment vs Sales
+
+ggplot(Store_Data, aes(Segment , new_sales))+
+  ylab("Sales in Dollars($)")+
+  xlab("Segment")+
+  ggtitle("Sales vs Segment")+
+  theme(plot.title = element_text(hjust = 0.5,size = 18,face = "bold"))+
+  geom_bar(stat = "identity",fill = "#6666FF")+ 
+  coord_flip()
+
+#=============================================================
+#Aggregation Profit vs Product
+
+profit <-  gsub("-.*", "", Store_Data$Profit)
+profit <- gsub(",", "", Store_Data$Profit)
+profit <- as.numeric(gsub("\\$", "", profit))
+
+sales <- gsub(",", "", Store_Data$Sales)
+sales <- as.numeric(gsub("\\$", "", sales))
+
+Store_Data$new_sales <- sales
+Store_Data$new_profit <- profit
+
+aggr_prodName <-aggregate(Store_Data$new_profit,  by=list(Product=Store_Data$Product.Name), FUN=sum)
+sorted_prodName <-aggr_prodName[order(-aggr_prodName$x),c(1,2)]
+top_prodName <- head(sorted_prodName,10)
+
+x <-ggplot(data = top_prodName, aes(x = Product, x))+
+  geom_point(stat = "identity")+
+  ylab("Profit in Dollars($)")+
+  xlab("Products")+
+  ggtitle("Top 10 Products vs Profit")+
+  theme(plot.title = element_text(hjust = 0.5,size = 18,face = "bold"))
+x + theme(axis.text.x =element_text(angle=90, hjust=1))
+
+#=============================================================
+# Top 10 products with quantityt
+
+#sorted_superMkt <- Store_Data[order(-Store_Data$new_profit),]
+#top_sorSuperMkt <- head(sorted_superMkt,10)
+#bottom_sorSuperMkt <- tail(sorted_superMkt,10)
+
+#top_sorSuperMkt
+#bottom_sorSuperMkt
+
+```
+
+5.	Draw a multivariate graph for all the variables
+
+```{r}
+
+#=============================================================
+# Multi variate analysis for Region, Product and Ship Mode
+
+p <- ggplot(Store_Data, aes(x=Region, fill=Ship.Mode))+geom_bar()+ theme_bw() +labs(y="no. of products", title = "Region most products purchased")
+p+theme(axis.text.x =element_text(angle=90, hjust=1) )
+
+#=============================================================
+# Multi variate analysis for Region, Product and Segment
+
+p <- ggplot(Store_Data, aes(x=Region, fill = Segment))+geom_bar()+ theme_bw() +labs(y="no. of products", title = "Region most products purchased")
+p+theme(axis.text.x =element_text(angle=90, hjust=1) )
+
+#=============================================================
+# Multi variate analysis for Region, Product and Sale
+
+sale_pro <- Store_Data[,c('Region','Product.ID','Sales')]
+
+sale <- as.character(sale_pro$Sales)
+#sale <- substr(sale, 2, nchar(sale))
+sale <- gsub("\\$", "", sale)
+sale <- gsub(",","",sale)
+sale <- as.numeric(sale)
+
+sale_pro$NewSale <- sale
+sale_pro$Sales <- NULL
+
+d1 <- aggregate(NewSale~Region+Product.ID, data=sale_pro, FUN=sum) 
+d2 <- d1[with(d1, order(-NewSale)), ]
+
+RegionTop10Product<- head(d2,10)
+RegionBottom10Product <- tail(d2,10)
+
+RegionTop10Product
+RegionBottom10Product
+
+#=============================================================
+# Multi variate analysis for Segment,Year,Sale and Profit
+
+seg_data <- Store_Data[,c('Segment','Sales','Profit')]
+
+prof <- as.character(Store_Data$Profit)
+prof <- gsub("\\$","",prof)
+prof <- gsub(",","",prof)
+prof <- as.numeric(prof)
+
+seg_data$NewSale <- sale
+seg_data$NewProf <- prof
+
+seg_data$Sales <- NULL
+seg_data$Profit <-NULL
+
+dt <- as.Date(Store_Data$Order.Date, format = "%d-%m-%y")
+FuncYear <- function(a) as.integer(format(as.Date(a), "%Y"))
+Y1 <- lapply(dt, function(y) FuncYear(y) )
+Y1 <- as.vector(unlist(Y1))
+seg_data$Year <- Y1
+
+d1 <- aggregate(cbind(NewSale,NewProf) ~ Segment+Year, data=seg_data, FUN=sum) 
+
+names(d1)[names(d1) == 'NewSale'] <- 'Sale'
+names(d1)[names(d1) == 'NewProf'] <- 'Profit'
+
+#Plot Year wise 
+dat_l <- melt(d1, id.vars = c("Year", "Segment"))
+p <- ggplot(data = dat_l, aes(x = Segment, y = value, group = variable, fill = variable))
+p <- p + geom_bar(stat = "identity", width = 0.5, position = "dodge")
+p <- p + facet_grid(. ~ Year)
+p <- p + theme_bw()
+p <- p + theme(axis.text.x = element_text(angle = 90))
+p
+
+#Plot Segment wise
+dat_l <- melt(d1, id.vars = c("Segment", "Year"))
+p <- ggplot(data = dat_l, aes(x = Year, y = value, group = variable, fill = variable))
+p <- p + geom_bar(stat = "identity", width = 0.5, position = "dodge")
+p <- p + facet_grid(. ~ Segment)
+p <- p + theme_bw()
+p <- p + theme(axis.text.x = element_text(angle = 90))
+p
+
+#=============================================================
+# Multi variate analysis for Sales, Profit and categoty
+
+profit <-  gsub("-.*", "", Store_Data$Profit)
+profit <- gsub(",", "", Store_Data$Profit)
+profit <- as.numeric(gsub("\\$", "", profit))
+
+sales <- gsub(",", "", Store_Data$Sales)
+sales <- as.numeric(gsub("\\$", "", sales))
+
+Store_Data$new_sales <- sales
+Store_Data$new_profit <- profit
+
+names(Store_Data)[names(Store_Data) == 'new_sales'] <- 'Sale'
+names(Store_Data)[names(Store_Data) == 'new_profit'] <- 'Profits'
+
+ggplot(Store_Data, aes(Sale, Profits))+geom_point(aes(color=Sub.Category), alpha=0.5)+geom_smooth(method=lm)+facet_grid(~Category) + theme(axis.text.x = element_text(angle = 90))
+
+#ggplot(Store_Data, aes(new_sales, new_profit))+geom_point(alpha=0.5)+geom_smooth(method=lm)+facet_grid(~Market) + theme(axis.text.x = element_text(angle = 90))
+
+#=============================================================
+# Multi variate analysis for Sales, Profit and sub-categoty
+
+ggplot(Store_Data, aes(Sale, Profits))+geom_point()+geom_smooth(method=lm)+facet_grid(~Sub.Category)+ theme(axis.text.x = element_text(size = 4,angle = 90)) + theme(strip.text.x = element_text(size = 8, colour = "orange", angle = 90))
+
+```
